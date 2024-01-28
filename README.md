@@ -68,7 +68,7 @@ Employees can view assigned tasks and mark them as completed.
 
  7. __Backend Source code :__
 
-        ttps://github.com/Vijayarajvijay/Task-manager-BE
+        https://github.com/Vijayarajvijay/Task-manager-BE
 
 8. __Netlify Deployed Url For Live:__
 
