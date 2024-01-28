@@ -64,16 +64,15 @@ Employees can view assigned tasks and mark them as completed.
 
 6. __Backend Postman URl :__  
 
- https://documenter.getpostman.com/view/30449043/2s9YyqjNTJ
+       https://documenter.getpostman.com/view/30449043/2s9YyqjNTJ
 
  7. __Backend Source code :__
 
- https://github.com/Vijayarajvijay/Task-manager-BE
+        ttps://github.com/Vijayarajvijay/Task-manager-BE
 
 8. __Netlify Deployed Url For Live:__
 
-   https://profound-squirrel-03efdb.netlify.app/
-
+       https://profound-squirrel-03efdb.netlify.app/
 
 
 ## 📌 Project Structure:
