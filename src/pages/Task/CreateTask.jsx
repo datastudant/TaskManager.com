@@ -98,7 +98,7 @@ const CreateTask = ({ refreshTasks }) => {
             </div>
             <div className="mb-3">
               <label htmlFor="assignedTo" className="form-label">
-                Assigned To (User ID) From User Profile
+                Assigned To Employee Email
               </label>
               <input
                 type="text"
