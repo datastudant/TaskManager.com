@@ -95,6 +95,31 @@ const TaskList = () => {
         setShowEditModal(true);
       };
 
+      const handleUpdateTask = async (updatedData) => {
+        try {
+          await AxiosService.put(`/task/edit/${selectedTask._id}`, updatedData);
+          toast.success("Task Updated Successfully");
+    
+          // Update the state with the modified task
+          setTasks((prevTasks) =>
+            prevTasks.map((task) =>
+              task._id === selectedTask._id ? { ...task, ...updatedData } : task
+            )
+          );
+    
+          setShowEditModal(false);
+          setSelectedTask(null);
+        } catch (error) {
+          console.error("Error updating task:", error.message);
+    
+          if (error.response && error.response.data && error.response.data.message) {
+            toast.error(`Error updating task: ${error.response.data.message}`);
+          } else {
+            toast.error("An error occurred while updating the task.");
+          }
+        }
+      };
+
       const handleHideEditModal = () => {
         setShowEditModal(false);
         setSelectedTask(null);

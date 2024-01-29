@@ -1,107 +1,99 @@
-import React, { useState, useEffect, useContext } from 'react'
+import React, { useState, useEffect } from 'react';
 import RemoveRedEyeIcon from "@mui/icons-material/RemoveRedEye";
 import CreateIcon from "@mui/icons-material/Create";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import SearchIcon from "@mui/icons-material/Search";
 import { NavLink } from "react-router-dom";
-import { adddata,deldata } from '../../components/context/ContextProvider';
-import { updatedata } from '../../components/context/ContextProvider';
 import AxiosService from '../../components/utils/ApiService';
 import { toast } from "react-toastify";
 import useLogout from '../../components/hooks/useLogout';
-import styles from "../../components/Dashboard/AdminDashboard/Dasboard.module.css"
 import Spinner from '../../components/Spiner/Spiner';
+import styles from "../../components/Dashboard/AdminDashboard/Dasboard.module.css";
+
 const Home = () => {
+  let logout = useLogout();
+  const [loading, setLoading] = useState(true);
+  const [getuserdata, setUserdata] = useState([]);
+  const [searchInput, setSearchInput] = useState("");
+  const [filteredData, setFilteredData] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(5);
 
-    let logout = useLogout();
-    const [loading, setLoading] = useState(true);
-    const [getuserdata, setUserdata] = useState([]);
-    const [searchInput, setSearchInput] = useState("");
-    const [filteredData, setFilteredData] = useState([]);
-    const [currentPage, setCurrentPage] = useState(1);
-    const [itemsPerPage, setItemsPerPage] = useState(5);
-  
-    const { udata, setUdata } = useContext(adddata);
-    const { updata, setUPdata } = useContext(updatedata);
-    const { dltdata, setDLTdata } = useContext(deldata);
-  
+  useEffect(() => {
     const getdata = async () => {
-        try {
-          let res = await AxiosService.get(`/user/getdata`);
-          const data = res.data;
-    
-          if (res.status === 200) {
-            toast.success(res.data.message);
-            setUserdata(data.userData);
-            setFilteredData(data.userData);
-            setLoading(false);
-          }
-        } catch (error) {
-          toast.error(error.response.data.message);
-          if (error.response.status === 401) {
-            logout();
-            setLoading(false);
-          }
-        }
-      };
-    
-      useEffect(() => {
-        getdata();
-      }, []);
+      try {
+        let res = await AxiosService.get(`/user/getdata`);
+        const data = res.data;
 
-      const deleteuser = async (id) => {
-        try {
-          const response = await AxiosService.delete(`/user/deleteuser/${id}`);
-          const deletedata = response.data;
-    
-          if (response.status === 422 || !deletedata) {
-            console.log("error");
-          } else {
-            console.log("user deleted");
-            setDLTdata(deletedata);
-            toast.success("Delete Successfully");
-            getdata();
-          }
-        } catch (error) {
-          console.error("Error deleting user:", error);
+        if (res.status === 200) {
+          toast.success(res.data.message);
+          setUserdata(data.userData);
+          setFilteredData(data.userData);
+          setLoading(false);
         }
-      };
-
-      const handleSearchInputChange = (e) => {
-        const inputValue = e.target.value;
-        setSearchInput(inputValue);
-    
-        const filtered = getuserdata.filter((user) => {
-          const mobile = String(user.mobile);
-    
-          return (
-            user.name.toLowerCase().includes(inputValue.toLowerCase()) ||
-            user.email.toLowerCase().includes(inputValue.toLowerCase()) ||
-            user._id.toLowerCase().includes(inputValue.toLowerCase()) ||
-            mobile.toLowerCase().includes(inputValue.toLowerCase())
-          );
-        });
-    
-        setFilteredData(filtered);
-        setCurrentPage(1);
-      };
-    
-      useEffect(() => {
-        setFilteredData(getuserdata);
-      }, [getuserdata]);
-    
-      const indexOfLastItem = currentPage * itemsPerPage;
-      const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-      const currentItems = filteredData.slice(indexOfFirstItem, indexOfLastItem);
-    
-      const paginate = (pageNumber) => setCurrentPage(pageNumber);
-      if (loading) {
-        return <Spinner />;
+      } catch (error) {
+        toast.error(error.response.data.message);
+        if (error.response.status === 401) {
+          logout();
+          setLoading(false);
+        }
       }
+    };
 
+    getdata();
+  }, [logout]);
+
+  const deleteuser = async (id) => {
+    try {
+      const response = await AxiosService.delete(`/user/deleteuser/${id}`);
+      const deletedata = response.data;
+
+      if (response.status === 422 || !deletedata) {
+        console.log("error");
+      } else {
+        console.log("user deleted");
+        toast.success("Delete Successfully");
+        getdata();
+      }
+    } catch (error) {
+      console.error("Error deleting user:", error);
+    }
+  };
+
+  const handleSearchInputChange = (e) => {
+    const inputValue = e.target.value;
+    setSearchInput(inputValue);
+
+    const filtered = getuserdata.filter((user) => {
+      const mobile = String(user.mobile);
+
+      return (
+        user.name.toLowerCase().includes(inputValue.toLowerCase()) ||
+        user.email.toLowerCase().includes(inputValue.toLowerCase()) ||
+        user._id.toLowerCase().includes(inputValue.toLowerCase()) ||
+        mobile.toLowerCase().includes(inputValue.toLowerCase())
+      );
+    });
+
+    setFilteredData(filtered);
+    setCurrentPage(1);
+  };
+
+  useEffect(() => {
+    setFilteredData(getuserdata);
+  }, [getuserdata]);
+
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredData.slice(indexOfFirstItem, indexOfLastItem);
+
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+  if (loading) {
+    return <Spinner />;
+  }
 
   return (
-     <div className="container ">
+    <div className="container ">
       <div className={`card mb-4 ${styles.userTable}`}>
         <div className="card-header  ">
           <i className="fas fa-table me-1"></i>
@@ -211,7 +203,7 @@ const Home = () => {
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Home
+export default Home;
