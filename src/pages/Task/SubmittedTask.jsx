@@ -1,209 +1,138 @@
-import React,{useState,useEffect} from 'react'
-import AxiosService from '../../components/utils/ApiService'
-import { Card, Form, Pagination, Container, Row, Col } from "react-bootstrap";
+import React, { useState, useEffect } from 'react';
+import { Card, Pagination, Container, Row, Col } from "react-bootstrap";
 import SearchIcon from "@mui/icons-material/Search";
 import Spiner from '../../components/Spiner/Spiner';
+import styles from './submittedtask.module.css';
+
 const SubmittedTask = () => {
+  const [allTasks, setAllTasks] = useState([]);
+  const [filteredTasks, setFilteredTasks] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("submitted");
+  const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const tasksPerPage = 6;
 
-    const [submittedTasks, setSubmittedTasks] = useState([]);
-    const [filteredTasks, setFilteredTasks] = useState([]);
-    const [searchTerm, setSearchTerm] = useState("");
-    const [statusFilter, setStatusFilter] = useState("Submitted");
-    const [loading, setLoading] = useState(true);
-    const [totalTasks, setTotalTasks] = useState(0);
-    const [pendingTasks, setPendingTasks] = useState(0);
-    const [submittedTaskCount, setSubmittedTaskCount] = useState(0);
-    const [currentPage, setCurrentPage] = useState(1);
-    const [tasksPerPage] = useState(6);
+  useEffect(() => {
+    setLoading(true);
+    const storedTasks = JSON.parse(localStorage.getItem("mockTasks")) || [];
+    setAllTasks(storedTasks);
+    setLoading(false);
+  }, []);
 
-    const fetchSubmittedTasks = async () => {
-        try {
-          setLoading(true);
-    
-          const params = statusFilter ? { status: statusFilter } : {};
-          const response = await AxiosService.get("/task/tasks/status", { params });
-    
-          setTotalTasks(response.data.length);
-          setPendingTasks(response.data.filter((task) => task.status === "Pending").length);
-          setSubmittedTaskCount(response.data.filter((task) => task.status === "Submitted").length);
-          setSubmittedTasks(response.data);
-          setFilteredTasks(response.data);
-        } catch (error) {
-          console.error("Error fetching submitted tasks:", error);
-        } finally {
-          setLoading(false);
-        }
-      };
-
-      useEffect(() => {
-        fetchSubmittedTasks();
-      }, [statusFilter]);
-    
-      useEffect(() => {
-        filterTasks();
-      }, [searchTerm, statusFilter, submittedTasks]);
-
-      const fetchIndividualUserEmail = async (userId) => {
-        try {
-          const response = await AxiosService.get(`/user/getuser/${userId}`);
-          return response.data.email;
-        } catch (error) {
-          console.error("Error fetching individual user:", error);
-          return ""; // Return an empty string or handle the error as needed
-        }
-      };
-
-      const filterTasks = async () => {
-        const lowerCaseSearchTerm = searchTerm.toLowerCase();
-      
-        const filteredTasks = await Promise.all(
-          submittedTasks.map(async (task) => {
-            const email = await fetchIndividualUserEmail(task.assignedTo);
-            return { ...task, email };
-          })
+  useEffect(() => {
+    const filtered = allTasks
+      .filter(task => task.status?.toLowerCase() === statusFilter)
+      .filter(task => {
+        const search = searchTerm.toLowerCase();
+        return (
+          task.title?.toLowerCase().includes(search) ||
+          task.description?.toLowerCase().includes(search) ||
+          task.assignedTo?.toLowerCase().includes(search)
         );
+      });
+    setFilteredTasks(filtered);
+  }, [searchTerm, statusFilter, allTasks]);
 
-        const filteredAndSearchedTasks = filteredTasks.filter((task) => {
-            const lowerCaseTaskId = task._id.toLowerCase();
-            const taskIdIncludes = lowerCaseTaskId.includes(lowerCaseSearchTerm);
-            const emailIncludes = task.email && task.email.toLowerCase().includes(lowerCaseSearchTerm);
-            const titleIncludes = task.title.toLowerCase().includes(lowerCaseSearchTerm);
-            const descriptionIncludes = task.description.toLowerCase().includes(lowerCaseSearchTerm);
-        
-            return taskIdIncludes || emailIncludes || titleIncludes || descriptionIncludes;
-          });
-        
-          setFilteredTasks(filteredAndSearchedTasks);
-        };
-  
-        const handleSearch = (e) => {
-            setSearchTerm(e.target.value);
-          };
-        
-          const handleStatusFilterChange = (e) => {
-            const selectedStatus = e.target.value;
-            setStatusFilter(selectedStatus);
-          };
+  const handleSearch = (e) => setSearchTerm(e.target.value);
+  const handleStatusFilterChange = (e) => setStatusFilter(e.target.value.toLowerCase());
 
-          const indexOfLastTask = currentPage * tasksPerPage;
-          const indexOfFirstTask = indexOfLastTask - tasksPerPage;
-          const currentTasks = filteredTasks.slice(indexOfFirstTask, indexOfLastTask);
-        
-          const paginate = (pageNumber) => setCurrentPage(pageNumber);
+  const indexOfLastTask = currentPage * tasksPerPage;
+  const indexOfFirstTask = indexOfLastTask - tasksPerPage;
+  const currentTasks = filteredTasks.slice(indexOfFirstTask, indexOfLastTask);
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
+  const submittedCount = allTasks.filter(t => t.status === "submitted").length;
+  const pendingCount = allTasks.filter(t => t.status === "pending").length;
 
   return (
-   <>
-    <Container>
-        <Card className={`mb-4`}>
-          <Card.Header>
-            <i className="fas fa-table me-1"></i>
-            Submitted Tasks
-          </Card.Header>
+    <Container className={`mt-4 ${styles.submittedTaskPage}`}>
+      <Card className={`shadow-sm border-0 ${styles.card}`}>
+        <Card.Header className="bg-primary text-white d-flex justify-content-between align-items-center">
+          <h5 className="mb-0">📄 Submitted Tasks</h5>
+        </Card.Header>
 
-          <Card.Body>
-            <Row className="mt-2">
-              <Col sm={4}>
-                <div className="text-center">
-                  {statusFilter === "Pending" && (
-                    <div className="mb-3">
-                      <h4>Pending Tasks: {pendingTasks}</h4>
-                    </div>
-                  )}
+        <Card.Body>
+          <Row className="align-items-center mb-4">
+            <Col sm={4}>
+              <h5 className="text-center mb-0">
+                {statusFilter === "pending"
+                  ? `Pending Tasks: ${pendingCount}`
+                  : `Submitted Tasks: ${submittedCount}`}
+              </h5>
+            </Col>
 
-                  {statusFilter === "Submitted" && (
-                    <div>
-                      <h4>Submitted Tasks: {submittedTaskCount}</h4>
-                    </div>
-                  )}
-                </div>
-              </Col>
-              {loading && <Spiner />} 
-              <Col sm={4} className="mb-3">
-                <div className="input-group">
-                  <input
-                    type="text"
-                    placeholder="Search by Title, or Description"
-                    value={searchTerm}
-                    onChange={handleSearch}
-                    className="form-control"
-                  />
-                  <span className="input-group-text">
-                    <SearchIcon />
-                  </span>
-                </div>
-              </Col>
+            {loading && <Spiner />}
 
-              <Col sm={4} className="justify-content-end">
-                <select
-                  value={statusFilter}
-                  onChange={handleStatusFilterChange}
-                  className="form-select"
+            <Col sm={4}>
+              <div className={`input-group ${styles.formGroup}`}>
+                <input
+                  type="text"
+                  placeholder="Search tasks..."
+                  value={searchTerm}
+                  onChange={handleSearch}
+                  className="form-control"
+                />
+                <span className="input-group-text bg-light">
+                  <SearchIcon />
+                </span>
+              </div>
+            </Col>
+
+            <Col sm={4}>
+              <select
+                value={statusFilter}
+                onChange={handleStatusFilterChange}
+                className="form-select"
+              >
+                <option value="pending">Pending</option>
+                <option value="submitted">Submitted</option>
+              </select>
+            </Col>
+          </Row>
+
+          <Row xs={1} md={2} lg={3} className="g-4">
+            {currentTasks.length === 0 ? (
+              <p className="text-center text-muted">No {statusFilter} tasks found.</p>
+            ) : (
+              currentTasks.map((task) => (
+                <Col key={task.id}>
+                  <Card className={`h-100 shadow-sm ${styles.card}`}>
+                    <Card.Body>
+                      <Card.Title className="mb-3">
+                        <strong>{task.title}</strong>
+                      </Card.Title>
+                      <Card.Text>Description: {task.description}</Card.Text>
+                      <Card.Text>Assigned To: {task.assignedTo}</Card.Text>
+                      <Card.Text>Status: 
+                        <span className={`badge ms-2 ${task.status === "submitted" ? "bg-success" : "bg-warning text-dark"}`}>
+                          {task.status}
+                        </span>
+                      </Card.Text>
+                    </Card.Body>
+                  </Card>
+                </Col>
+              ))
+            )}
+          </Row>
+
+          <div className="d-flex justify-content-center mt-4">
+            <Pagination>
+              {[...Array(Math.ceil(filteredTasks.length / tasksPerPage)).keys()].map((number) => (
+                <Pagination.Item
+                  key={number + 1}
+                  active={number + 1 === currentPage}
+                  onClick={() => paginate(number + 1)}
                 >
-                  <option value="Pending">Pending</option>
-                  <option value="Submitted">Submitted</option>
-                </select>
-              </Col>
-            </Row>
+                  {number + 1}
+                </Pagination.Item>
+              ))}
+            </Pagination>
+          </div>
+        </Card.Body>
+      </Card>
+    </Container>
+  );
+};
 
-            <div
-              className="table-container"
-              style={{ maxHeight: "400px", overflowY: "auto" }}
-            >
-              {currentTasks.length === 0 ? (
-                <p className="text-center">No submitted tasks found</p>
-              ) : (
-                <Row xs={1} md={2} lg={3} className="g-4">
-                  {currentTasks.map((task) => (
-                    <Col key={task._id} className="mb-4">
-                      <Card style={{ height: "100%" }}>
-                        <Card.Body>
-                          <Card.Title className="mb-3">
-                            Title: {task.title}
-                          </Card.Title>
-                          <Card.Text className="mb-2">
-                            Description: {task.description}
-                          </Card.Text>
-                          <Card.Text className="mb-2">
-                           Work : {task.frontendUrl}
-                          </Card.Text>
-                          <Card.Text className="mb-2">
-                            ProductUrl: {task.backendUrl}
-                          </Card.Text>
-                          <Card.Text className="mb-2">
-                            Submitted By: {task.assignedTo}
-                          </Card.Text>
-                          <Card.Text>Email: {task.email}</Card.Text>
-                          <Card.Text>Status: {task.status}</Card.Text>
-                        </Card.Body>
-                      </Card>
-                    </Col>
-                  ))}
-                </Row>
-              )}
-            </div>
-
-            <div className="d-flex justify-content-center mt-4">
-              <Pagination>
-                {[
-                  ...Array(
-                    Math.ceil(filteredTasks.length / tasksPerPage)
-                  ).keys(),
-                ].map((number) => (
-                  <Pagination.Item
-                    key={number + 1}
-                    active={number + 1 === currentPage}
-                    onClick={() => paginate(number + 1)}
-                  >
-                    {number + 1}
-                  </Pagination.Item>
-                ))}
-              </Pagination>
-            </div>
-          </Card.Body>
-        </Card>
-      </Container>
-   </>
-  )
-}
-
-export default SubmittedTask
+export default SubmittedTask;

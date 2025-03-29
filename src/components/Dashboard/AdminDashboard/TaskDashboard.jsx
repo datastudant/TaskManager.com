@@ -1,94 +1,78 @@
-import React , { useState, useEffect } from 'react'
-import AxiosService from '../../utils/ApiService'
+import React, { useState, useEffect } from 'react';
 import { ProgressBar, Card } from "react-bootstrap";
 import { useSpring, animated } from "react-spring";
-import styles from './TaskDashboard.module.css'
-function TaskDashboard() {
-    const [dashboardData, setDashboardData] = useState({
-        totalTasks: 0,
-        pendingTasks: 0,
-        submittedTasks: 0,
-        tasks: [],
-      });
-    
-      const animatedTotalTasks = useSpring({
-        value: dashboardData.totalTasks,
-        from: { value: 0 },
-      });
-      const animatedPendingTasks = useSpring({
-        value: dashboardData.pendingTasks,
-        from: { value: 0 },
-      });
-      const animatedSubmittedTasks = useSpring({
-        value: dashboardData.submittedTasks,
-        from: { value: 0 },
-      });
-    
-      useEffect(() => {
-        const fetchData = async () => {
-          try {
-            const response = await AxiosService.get("/task/tasks");
-            setDashboardData(response.data);
-          } catch (error) {
-            console.error("Error fetching dashboard data:", error);
-          }
-        };
-    
-        fetchData();
-      }, []);
-    
-      // Calculate the percentage of pending and submitted tasks
-      const pendingPercentage =
-        Math.round((dashboardData.pendingTasks / dashboardData.totalTasks) * 100) ||
-        0;
-      const submittedPercentage =
-        Math.round(
-          (dashboardData.submittedTasks / dashboardData.totalTasks) * 100
-        ) || 0;
-    
-      return (
-        <div style={{  width: "auto", height: "auto", alignItems: "center" }}>
-    
-          <Card className={styles.card}>
-            <Card.Body>
-              <Card.Title>Total Tasks</Card.Title>
-              <animated.span className={styles.propertyValue}>
-                {animatedTotalTasks.value.to((val) => val.toFixed(0))}
-              </animated.span>
-            </Card.Body>
-          </Card>
-    
-          {/* Progress bar for Pending Tasks */}
-          <Card className={`${styles.card} ${styles.warningCard}`}>
-            <Card.Body>
-              <Card.Title>Pending Tasks</Card.Title>
-              <animated.span className={styles.propertyValue}>
-                {animatedPendingTasks.value.to((val) => val.toFixed(0))}
-              </animated.span>
-              <ProgressBar
-                now={pendingPercentage}
-                label={`${pendingPercentage}%`}
-                variant="warning"
-              />
-            </Card.Body>
-          </Card>
-    
-          {/* Progress bar for Submitted Tasks */}
-          <Card className={`${styles.card} ${styles.successCard}`}>
-            <Card.Body>
-              <Card.Title>Submitted Tasks</Card.Title>
-              <animated.span className={styles.propertyValue}>
-                {animatedSubmittedTasks.value.to((val) => val.toFixed(0))}
-              </animated.span>
-              <ProgressBar
-                now={submittedPercentage}
-                label={`${submittedPercentage}%`}
-                variant="success"
-              />
-            </Card.Body>
-          </Card>
-        </div>
-      );
-    };
+import styles from './TaskDashboard.module.css';
 
-export default TaskDashboard
+function TaskDashboard() {
+  const [dashboardData, setDashboardData] = useState({
+    totalTasks: 0,
+    pendingTasks: 0,
+    submittedTasks: 0,
+  });
+
+  const totalSpring = useSpring({ val: dashboardData.totalTasks, from: { val: 0 }, config: { duration: 800 } });
+  const pendingSpring = useSpring({ val: dashboardData.pendingTasks, from: { val: 0 }, config: { duration: 800 } });
+  const submittedSpring = useSpring({ val: dashboardData.submittedTasks, from: { val: 0 }, config: { duration: 800 } });
+
+  useEffect(() => {
+    const fetchData = () => {
+      const tasks = JSON.parse(localStorage.getItem("mockTasks")) || [];
+      const total = tasks.length;
+      const pending = tasks.filter(t => t.status === "pending").length;
+      const submitted = tasks.filter(t => t.status === "submitted").length;
+
+      setDashboardData({
+        totalTasks: total,
+        pendingTasks: pending,
+        submittedTasks: submitted,
+      });
+    };
+    fetchData();
+  }, []);
+
+  const pendingPercentage = Math.round((dashboardData.pendingTasks / dashboardData.totalTasks) * 100) || 0;
+  const submittedPercentage = Math.round((dashboardData.submittedTasks / dashboardData.totalTasks) * 100) || 0;
+
+  return (
+    <div className={styles.dashboardGrid}>
+      <Card className={styles.card}>
+        <Card.Body>
+          <Card.Title>Total Tasks</Card.Title>
+          <animated.span className={styles.animatedCount}>
+            {totalSpring.val.to((val) => Math.floor(val))}
+          </animated.span>
+        </Card.Body>
+      </Card>
+
+      <Card className={`${styles.card} ${styles.warningCard}`}>
+        <Card.Body>
+          <Card.Title>Pending Tasks</Card.Title>
+          <animated.span className={styles.animatedCount}>
+            {pendingSpring.val.to((val) => Math.floor(val))}
+          </animated.span>
+          <ProgressBar
+            now={pendingPercentage}
+            label={`${pendingPercentage}%`}
+            variant="warning"
+          />
+        </Card.Body>
+      </Card>
+
+      <Card className={`${styles.card} ${styles.successCard}`}>
+        <Card.Body>
+          <Card.Title>Submitted Tasks</Card.Title>
+          <animated.span className={styles.animatedCount}>
+            {submittedSpring.val.to((val) => Math.floor(val))}
+          </animated.span>
+          <ProgressBar
+            now={submittedPercentage}
+            label={`${submittedPercentage}%`}
+            variant="success"
+          />
+        </Card.Body>
+      </Card>
+    </div>
+  );
+}
+
+export default TaskDashboard;

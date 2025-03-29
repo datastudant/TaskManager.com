@@ -2,32 +2,73 @@
 /* TaskDashboard.module.css */
 
 .title {
-    font-size: 24px !important;
-    font-weight: bold !important;
-    margin-bottom: 20px !important;
+  font-size: 24px !important;
+  font-weight: bold !important;
+  margin-bottom: 20px !important;
+}
+
+.card {
+  width: auto !important;
+  margin-bottom: 20px !important;
+  border-radius: 10px !important;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1) !important;
+  height: auto;
+  padding: 15px;
+}
+
+.propertyValue {
+  font-size: 18px !important;
+  font-weight: bold !important;
+  margin-bottom: 10px !important;
+}
+
+.warningCard {
+  background-color: #ffcf3e;
+  color: #000;
+}
+
+.successCard {
+  background-color: #28a745;
+  color: #fff;
+}
+
+/* Animated dashboard layout */
+.dashboard {
+  padding-left: 260px;
+  padding-right: 20px;
+  padding-top: 30px;
+  overflow-y: auto;
+  max-height: calc(100vh - 60px);
+}
+
+
+.animatedCount {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #fff;
+  display: block;
+  margin-top: 10px;
+}
+
+@media (max-width: 576px) {
+  .dashboardGrid {
+    grid-template-columns: 1fr;
+    padding: 12px;
+    gap: 1rem;
   }
-  
+
   .card {
-    width: auto !important;
-    margin-bottom: 20px !important;
-    border-radius: 10px !important;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1) !important;
-    height: auto;
-    
+    font-size: 0.95rem;
+    padding: 10px;
   }
-  
-  .propertyValue {
-    font-size: 18px !important;
-    font-weight: bold !important;
-    margin-bottom: 10px !important;
+
+  .animatedCount {
+    font-size: 1.8rem;
   }
-  
-  .warningCard {
-    background-color: #ffcf3e; /* Bootstrap warning color */
-  }
-  
-  .successCard {
-    background-color: #28a745; /* Bootstrap success color */
-  }
-  
-  /* Add more styles as needed */
+}
+.warningCard .card-title,
+.successCard .card-title,
+.warningCard .animatedCount,
+.successCard .animatedCount {
+  color: #fff !important;
+}

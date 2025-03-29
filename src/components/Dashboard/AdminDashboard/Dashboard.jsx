@@ -16,9 +16,16 @@ function Dashboard() {
   return  (
     
     <div
-      className={`container-fluid ${styles.dashboard}`}
-      style={{ overflowY: "auto", maxHeight: "calc(100vh )" }}
-    >
+  className={`container-fluid ${styles.dashboard}`}
+  style={{
+    overflowY: "auto",
+    maxHeight: "calc(100vh - 60px)", // optional header height
+    paddingLeft: "260px", // match sidebar width
+    paddingRight: "20px",
+    paddingTop: "30px",
+  }}
+>
+
       {/* Charts */}
       <div className="row">
         <div style={{margin:"150px"}} className="col-xl-6">
